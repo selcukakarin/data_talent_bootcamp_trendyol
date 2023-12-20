@@ -1,0 +1,31 @@
+# from pyspark.sql import SparkSession komutunda hata alırsanız aşağıdaki adımlarla önce python 3.6 versiyonunu indirin sonrada bu versiyonla
+# conda'da gerekli configleri yapın
+
+kaynak : https://stackoverflow.com/questions/52584907/how-to-downgrade-python-from-3-7-to-3-6
+In general, it's suggested to use virtual environments (I highly suggest looking at the official Python documentation). With this approach, you easily can set up project-specific Python versions (as well as libraries). Easily manageable and the best part: There are lots of tutorials on the internet on how to approach this:
+
+Using VirtualEnv with multiple Python versions on windows
+https://www.freecodecamp.org/news/installing-multiple-python-versions-on-windows-using-virtualenv/
+etc.
+1.) Open command prompt ("cmd") and enter pip install virtualenv.
+
+2.) Install your desired Python version via https://www.python.org/downloads/release; Remember: Do not add to PATH!
+
+3.) Type into the command prompt: virtualenv \path\to\env -p \path\to\python_install.exe, whereas \path\to\env shall be the path where your virtual environment is going to be and \path\to\python_install.exe the one where your freshly (presumably) installed Python version resides.
+
+4.) Done! You now have a virtual environment set up! Now, to activate the virtual environment execute the batch file which is located inside the \path\to\env\Scripts\activate.bat. (cf. this website or an official Python guide)
+
+
+
+kaynak : https://stackoverflow.com/questions/49428381/how-to-change-jupyter-kernel-from-python-2-to-python-3
+
+
+You can do this with the following steps:
+
+1-conda create -n py36 'python=3.6' ipykernel #Replace 3.6 with desired version.
+
+2-To activate installed jupyter kernal you need run, source activate py36
+
+3-python -m ipykernel install --user
+
+4-The interesting part: if you want to switch between kernels (py2-py3) in the same notebook, you need to run, conda install nb_conda

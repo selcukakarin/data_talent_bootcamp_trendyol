@@ -1,0 +1,4 @@
+sparkı scala modunda çalıştıralım
+cmd -> spark-shell
+dosyadan scalayı çalıştırmak için
+:load C:\Users\selcuk\Desktop\apache-spark\scala\scala_temel.scala

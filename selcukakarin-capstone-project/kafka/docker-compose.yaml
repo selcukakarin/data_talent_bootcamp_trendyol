@@ -1,0 +1,93 @@
+version: '3'
+services:
+  zookeeper:
+    image: debezium/zookeeper:1.3
+    container_name: zookeeper
+    ports:
+     - 2181:2181
+     - 2888:2888
+     - 3888:3888
+  kafka:
+    image: debezium/kafka:1.3
+    container_name: kafka
+    ports:
+     - 9092:9092
+    links:
+     - zookeeper
+    environment:
+     - ZOOKEEPER_CONNECT=zookeeper:2181
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafdrop
+    restart: "no"
+    ports:
+      - 9000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    depends_on:
+      - kafka
+  connect:
+    image: debezium/connect:1.3
+    container_name: connect
+    ports:
+     - 8083:8083
+     - 5005:5005
+    links:
+     - kafka
+    environment:
+     - BOOTSTRAP_SERVERS=kafka:9092
+     - GROUP_ID=1
+     - CONFIG_STORAGE_TOPIC=my_connect_configs
+     - OFFSET_STORAGE_TOPIC=my_connect_offsets
+     - STATUS_STORAGE_TOPIC=my_source_connect_statuses
+    volumes:
+      - ./output:/tmp
+  connect-ui:
+    image: landoop/kafka-connect-ui:0.9.6
+    container_name: connect-ui
+    hostname: kafka-connect-ui
+    ports:
+      - 8002:8000
+    links:
+      - connect
+    environment:
+      - CONNECT_URL=http://connect:8083/
+  database:
+    image: "postgres"
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    # ports:
+    #     - "5433:5432"
+    volumes:
+      - ./database-data:/var/lib/postgresql/data/
+    hostname: database
+  webserver:
+    image: airflow-test
+    hostname: webserver
+    restart: always
+    depends_on:
+      - database
+    environment:
+      - LOAD_EX=n
+    ports:
+      - "8080:8080"
+    command: sh -c "airflow db init && airflow db upgrade  && airflow users create -u admin -p admin -e admin@admin.com -r Admin -f Admin -l Admin && airflow webserver"
+    volumes:
+      - ./dags:/usr/local/airflow/dags
+    healthcheck:
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  scheduler:
+    image: airflow-test
+    hostname: scheduler
+    restart: always
+    volumes:
+      - ./dags:/usr/local/airflow/dags
+    depends_on:
+      - webserver
+    command: airflow scheduler
